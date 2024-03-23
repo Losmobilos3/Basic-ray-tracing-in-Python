@@ -1,9 +1,10 @@
 import numpy as np
 
 class object3d:
-    def __init__(self, vertexes, faces, normals, pos, emission, roughness, size):
+    def __init__(self, vertexes, faces, normals, pos, emission = np.array([0, 0, 0]), roughness = 0, size = 1, material = np.array([255, 255, 255])):
         self.pos = pos
         self.emission = emission
+        self.material = material
         self.roughness = roughness
         self.vertexes = [vertex * size + pos for vertex in vertexes]
         self.faces = faces
@@ -35,6 +36,7 @@ class object3d:
                 t = np.linalg.solve(A, a) [2]
                 if t > 0:
                     I = reflectionVec * t + rayStart
+                    #print(I)
                 else: 
                     continue
             else:
@@ -64,7 +66,7 @@ class object3d:
 
             #print("                             BaryCords: ", baryCords)
             if all(cord > 0 for cord in baryCords) and (rayLength < firstRayLength or firstRayLength == -1):
-                print("Jeg rammer trekanten")
+                #print("Jeg rammer trekanten")
                 firstHitFace = face
                 firstRayLength = rayLength
                 firstIntersection = I

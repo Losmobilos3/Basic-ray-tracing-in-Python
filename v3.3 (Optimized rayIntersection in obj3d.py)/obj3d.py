@@ -1,9 +1,10 @@
 import numpy as np
 
 class object3d:
-    def __init__(self, vertexes, faces, normals, pos, emission, roughness, size):
+    def __init__(self, vertexes, faces, normals, pos, emission = np.array([0, 0, 0]), roughness = 0, size = 1, material = np.array([255, 255, 255])):
         self.pos = pos
         self.emission = emission
+        self.material = material
         self.roughness = roughness
         self.vertexes = [vertex * size + pos for vertex in vertexes]
         self.faces = faces
@@ -17,6 +18,10 @@ class object3d:
         firstRayLength = -1
 
         for face in range(len(self.faces)):
+            # Hvis facet peger væk fra kameraet, så kan vi godt skippe det.
+            if reflectionVec @ self.normals[face] > 0:
+                continue
+            
             # Gets the corners of the triangle
             a = movedVertexes[self.faces[face][0]-1]
             b = movedVertexes[self.faces[face][1]-1]
@@ -31,22 +36,24 @@ class object3d:
             # Init of interception
             I = -1
             # Løser ligningssystem for strålen
-            if np.vdot(reflectionVec, self.normals[face]) != 0: # Hvis ray'en er parallel med planen, så er der ingen interception
-                t = np.linalg.solve(A, a) [2]
-                if t > 0:
-                    I = reflectionVec * t + rayStart
-                else: 
-                    continue
-            else:
+            if np.vdot(reflectionVec, self.normals[face]) == 0: # Hvis ray'en er parallel med planen, så er der ingen interception
                 continue
+
+            t = np.linalg.solve(A, a) [2]
+
+            # Hvis objektet bliver ramt bag kameraet, gå videre til næste flade
+            if t < 0:
+                continue
+
+            I = reflectionVec * t + rayStart
 
             # Nu er intersection med planen (I) bestemt. Vi skal nu bestemme om vi rammer trekanten på planen
 
             corners = [a, b, c]
-            #! Computation of barycentric coordinates
+            # Computation of barycentric coordinates
             baryCords = np.array([0, 0, 0], dtype=float)
             for corner in range(3):
-                #! Beregner ratio af barycentrisk koordinat
+                # Beregner ratio af barycentrisk koordinat
                 ab = corners[(corner+1) % 3] - corners[corner]
                 cb = corners[(corner+1) % 3] - corners[(corner+2) % 3]
 
@@ -64,7 +71,7 @@ class object3d:
 
             #print("                             BaryCords: ", baryCords)
             if all(cord > 0 for cord in baryCords) and (rayLength < firstRayLength or firstRayLength == -1):
-                print("Jeg rammer trekanten")
+                #print("Jeg rammer trekanten")
                 firstHitFace = face
                 firstRayLength = rayLength
                 firstIntersection = I
