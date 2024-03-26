@@ -34,7 +34,7 @@ class object3d(ob.object):
             # Init of interception
             I : np.array = -1
             # Løser ligningssystem for strålen
-            if np.vdot(reflectionVec, self.normals[face]) == 0: # Hvis ray'en er parallel med planen, så er der ingen interception
+            if np.allclose(np.vdot(reflectionVec, self.normals[face]), 0): # Hvis ray'en er parallel med planen, så er der ingen interception
                 continue
 
             t : float = np.linalg.solve(A, a) [2]
@@ -64,7 +64,7 @@ class object3d(ob.object):
                 baryCords[corner] = 1.0 - ratioBetweenHeights # Bestemmer den barycentriske koordinat
             
             rayLength : float = np.linalg.norm(I - rayStart)
-            
+
             if all(cord > 0 for cord in baryCords) and (rayLength < firstRayLength or firstRayLength == -1):
                 #print("Jeg rammer trekanten")
                 firstHitFace = face

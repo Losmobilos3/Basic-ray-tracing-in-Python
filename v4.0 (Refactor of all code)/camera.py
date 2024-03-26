@@ -15,7 +15,7 @@ class camera:
 
 
 
-    def castRay(self, objects, reflectionVec, pos, prevLen = 0, depth = 5, prevObj = 0) -> np.array:
+    def castRay(self, objects, reflectionVec, pos, prevLen = 0, depth = 5, prevObj = 0) -> list[np.array, bool]:
         # Hvis rekursionsdybden er nået, så returner et lysniveau på 0
         if depth == 0:
             return np.zeros(3, dtype=float)
@@ -43,7 +43,7 @@ class camera:
                 firstObjHit = obj
             
         if minRayLen == -1: # Hvis ingen objekter blev ramt, returner 0 lys
-            return np.zeros(3, dtype=float)
+            return np.zeros(3, dtype=float), False # False angiver at ingen objekter blev ramt
 
         # Bruger afstands kvadrat loven til at beregne lysstyrken (*10^-4)
         lightFromCurrObj : np.array = firstObjHit.emission/((minRayLen + prevLen)**2*0.004*np.pi)
@@ -63,7 +63,7 @@ class camera:
             # Randomiserer reflektionen lidt. Siger noget om overfladen af objektets rughed
             newRandReflectionVector : np.array = newReflectionVector + randomOffset * firstObjHit.roughness
 
-            lightFromNextObj : np.array = self.castRay(objects, newRandReflectionVector, pos = firstIntersectionPos, prevLen= prevLen + minRayLen, depth= depth - 1, prevObj= firstObjHit)
+            lightFromNextObj, objHit = self.castRay(objects, newRandReflectionVector, pos = firstIntersectionPos, prevLen= prevLen + minRayLen, depth= depth - 1, prevObj= firstObjHit)
 
             #! Dette skal forbedres ift hvad der faktisk sker
             # Bøjer lyset lidt i samme farve som farven af det nuværende object
@@ -73,5 +73,5 @@ class camera:
 
             # Beregner total mængde lys.
             totalLight += lightFromNextObjBent / NOReflections
-        return totalLight
+        return totalLight, True # True angiver at et objekt blev ramt
 
